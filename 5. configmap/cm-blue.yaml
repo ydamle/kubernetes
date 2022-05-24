@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  creationTimestamp: null
+  name: blue
+spec: {}
+status: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: blue-deployment
+  name: blue-deployment
+  namespace: blue
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: blue-deployment
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: blue-deployment
+    spec:
+      containers:
+      - image: ydamle/images:blueapp
+        name: blue
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          name: web-port
+        volumeMounts:
+        - name: foo-cm
+          mountPath: "/tmp/cm"
+          readOnly: true
+      volumes:
+      - name: foo-cm
+        configMap:
+          name: game-demo
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: blue-svc
+  name: blue-svc
+  namespace: blue
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: web-port
+    nodePort: 30080
+  selector:
+    app: blue-deployment
+  type: NodePort
+status:
+  loadBalancer: {}
